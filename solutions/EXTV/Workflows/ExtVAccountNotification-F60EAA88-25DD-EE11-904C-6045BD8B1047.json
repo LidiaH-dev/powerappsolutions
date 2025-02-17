@@ -1,0 +1,212 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_fdc80"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedoffice365_4ab3a"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "IDMDEVELOPMENT - https://stadtwerkestuttgart.sharepoint.com/sites/IDMDEVELOPMENT (new_shared_sharepointonline_42a90b27e6d4498295d8d44a8ca30586)": {
+          "defaultValue": "https://stadtwerkestuttgart.sharepoint.com/sites/IDMDEVELOPMENT",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_shared_sharepointonline_42a90b27e6d4498295d8d44a8ca30586"
+          }
+        },
+        "IDMAPP (new_shared_sharepointonline_e83f8a7e9d57423c806fc133e51653ed)": {
+          "defaultValue": "811eec62-234b-4f6b-86e4-ae1bb66366b8",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_shared_sharepointonline_e83f8a7e9d57423c806fc133e51653ed"
+          }
+        },
+        "ORGDBLISTE (new_shared_sharepointonline_23a9252ab3a9471aa8086a824704c992)": {
+          "defaultValue": "4d862a92-64cc-41b4-96fb-00e855e49448",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_shared_sharepointonline_23a9252ab3a9471aa8086a824704c992"
+          }
+        }
+      },
+      "triggers": {
+        "Wiederholung": {
+          "recurrence": {
+            "frequency": "Day",
+            "interval": 1
+          },
+          "metadata": {
+            "operationMetadataId": "72aed7a7-9414-49ea-bfa2-35a90d80fe46"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Elemente_abrufen_IDMAPP": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "872754e2-b3fe-4fda-bcaa-f1249ff00eb6"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('IDMDEVELOPMENT - https://stadtwerkestuttgart.sharepoint.com/sites/IDMDEVELOPMENT (new_shared_sharepointonline_42a90b27e6d4498295d8d44a8ca30586)')",
+              "table": "@parameters('IDMAPP (new_shared_sharepointonline_e83f8a7e9d57423c806fc133e51653ed)')"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Auf_alle_anwenden": {
+          "foreach": "@outputs('Elemente_abrufen_IDMAPP')?['body/value']",
+          "actions": {
+            "Bedingung": {
+              "actions": {
+                "Elemente_abrufen_ORG_Personen": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "4f047310-b3d8-4dce-823c-5dd21433c2c5"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_sharepointonline",
+                      "operationId": "GetItems",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+                    },
+                    "parameters": {
+                      "dataset": "@parameters('IDMDEVELOPMENT - https://stadtwerkestuttgart.sharepoint.com/sites/IDMDEVELOPMENT (new_shared_sharepointonline_42a90b27e6d4498295d8d44a8ca30586)')",
+                      "table": "@parameters('ORGDBLISTE (new_shared_sharepointonline_23a9252ab3a9471aa8086a824704c992)')",
+                      "$filter": "Title eq '@{items('Auf_alle_anwenden')?['Org']}'"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "E-Mail_senden_(V2)": {
+                  "runAfter": {
+                    "Verfassen": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "d2fcdbae-10e9-4d03-9799-67dba33aa710"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_office365",
+                      "operationId": "SendEmailV2",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                    },
+                    "parameters": {
+                      "emailMessage/To": "afshan.tabbasum@bridging-it.de",
+                      "emailMessage/Subject": "Account: @{items('Auf_alle_anwenden')?['Accounttyp/Value']} für @{items('Auf_alle_anwenden')?['Vorname']} @{items('Auf_alle_anwenden')?['Name']} läuft bald ab",
+                      "emailMessage/Body": "<p><b>HINWEIS: </b><br>\nDer folgende Account läuft bald ab. <br>\nBitte überprüfen Sie diesen Account in der ExtV und verlängern ihn bei Bedarf.</p>\n@{items('Auf_alle_anwenden')?['Dienstleister']}<br>\n@{items('Auf_alle_anwenden')?['Geschlecht/Value']}  @{items('Auf_alle_anwenden')?['Vorname']}  @{items('Auf_alle_anwenden')?['Name']}<br>\nDer Account wird an folgendem Tag ablaufen:<br>\n@{formatDateTime(items('Auf_alle_anwenden')?['Austrittsdatum_x002f_g_x00fc_lti'],'dd.MM.yyyy')}<br><br>\n<a href='@{items('Auf_alle_anwenden')?['ItemLink']}'>Datensatz öffnen</a><br><br>\n\nDies ist eine automatisierte E-Mail.",
+                      "emailMessage/From": "IT-Information@stadtwerke-stuttgart.de",
+                      "emailMessage/Importance": "Normal"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                },
+                "Auswählen": {
+                  "runAfter": {
+                    "Elemente_abrufen_ORG_Personen": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "154f16c8-620a-42a6-8c4f-ddb55bdc07e9"
+                  },
+                  "type": "Select",
+                  "inputs": {
+                    "from": "@outputs('Elemente_abrufen_ORG_Personen')?['body/value']",
+                    "select": "@item()?['UPN']"
+                  }
+                },
+                "Verfassen": {
+                  "runAfter": {
+                    "Auswählen": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "3d5b6af3-0129-40d2-bef7-ce7bcf4925ed"
+                  },
+                  "type": "Compose",
+                  "inputs": "@join(body('Auswählen'),';')"
+                }
+              },
+              "runAfter": {},
+              "expression": {
+                "or": [
+                  {
+                    "equals": [
+                      "@formatDateTime(addHours(addDays(items('Auf_alle_anwenden')?['Austrittsdatum_x002f_g_x00fc_lti'],-21),1),'dd.MM.yyyy')",
+                      "@formatDateTime(utcNow(),'dd.MM.yyyy')"
+                    ]
+                  },
+                  {
+                    "equals": [
+                      "@formatDateTime(addHours(addDays(items('Auf_alle_anwenden')?['Austrittsdatum_x002f_g_x00fc_lti'],-14),1),'dd.MM.yyyy')",
+                      "@formatDateTime(utcNow(),'dd.MM.yyyy')"
+                    ]
+                  },
+                  {
+                    "equals": [
+                      "@formatDateTime(addHours(addDays(items('Auf_alle_anwenden')?['Austrittsdatum_x002f_g_x00fc_lti'],-7),1),'dd.MM.yyyy')",
+                      "@formatDateTime(utcNow(),'dd.MM.yyyy')"
+                    ]
+                  }
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "977b1e57-8467-4019-a064-c553f63919b5"
+              },
+              "type": "If"
+            }
+          },
+          "runAfter": {
+            "Elemente_abrufen_IDMAPP": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8b39992e-747b-4ea1-9885-d712c6c4eda2"
+          },
+          "type": "Foreach"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

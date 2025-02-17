@@ -1,0 +1,93 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedsharepointonline_fdc80"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "IDMDEVELOPMENT - https://stadtwerkestuttgart.sharepoint.com/sites/IDMDEVELOPMENT (new_shared_sharepointonline_42a90b27e6d4498295d8d44a8ca30586)": {
+          "defaultValue": "https://stadtwerkestuttgart.sharepoint.com/sites/IDMDEVELOPMENT",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_shared_sharepointonline_42a90b27e6d4498295d8d44a8ca30586"
+          }
+        },
+        "IDMAPP (new_shared_sharepointonline_e83f8a7e9d57423c806fc133e51653ed)": {
+          "defaultValue": "811eec62-234b-4f6b-86e4-ae1bb66366b8",
+          "type": "String",
+          "metadata": {
+            "schemaName": "new_shared_sharepointonline_e83f8a7e9d57423c806fc133e51653ed"
+          }
+        }
+      },
+      "triggers": {
+        "Wenn_ein_Element_erstellt_wird": {
+          "recurrence": {
+            "interval": 15,
+            "frequency": "Minute"
+          },
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "644050ee-a0a5-4cb1-a961-ecaf91bd3a31"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetOnNewItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('IDMDEVELOPMENT - https://stadtwerkestuttgart.sharepoint.com/sites/IDMDEVELOPMENT (new_shared_sharepointonline_42a90b27e6d4498295d8d44a8ca30586)')",
+              "table": "@parameters('IDMAPP (new_shared_sharepointonline_e83f8a7e9d57423c806fc133e51653ed)')"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Element_aktualisieren": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "f7fdc5a5-5883-421e-9575-b8a254b7ca64"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "PatchItem",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "@parameters('IDMDEVELOPMENT - https://stadtwerkestuttgart.sharepoint.com/sites/IDMDEVELOPMENT (new_shared_sharepointonline_42a90b27e6d4498295d8d44a8ca30586)')",
+              "table": "@parameters('IDMAPP (new_shared_sharepointonline_e83f8a7e9d57423c806fc133e51653ed)')",
+              "id": "@triggerOutputs()?['body/ID']",
+              "item/ItemLink": "@concat('https://apps.powerapps.com/play/',triggerOutputs()?['body/AppId'],'?ID=',triggerOutputs()?['body/ID'])"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}
