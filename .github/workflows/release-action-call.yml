@@ -1,0 +1,22 @@
+name: Release action
+# Call the reusable workflow release-solution-with-inputs.yml
+# Release your solution to prod when you create a new release.
+
+on:
+  release:
+      types: [created]        
+permissions:
+  contents: write
+jobs:
+  Release-solution-ALMLab:
+    uses: ./.github/workflows/release-solution-to-prod-with-inputs.yml
+    with:
+      #You can specify the solution name here
+      solution_name: EXTV
+      #Update your values here
+      BUILD_ENVIRONMENT_URL: https://bitapps-dev.crm.dynamics.com
+      PRODUCTION_ENVIRONMENT_URL: https://bitapps-eval.crm.dynamics.com
+      CLIENT_ID: 908d248e-cace-41db-af30-11f677b6a3c6
+      TENANT_ID: ef22e7a9-c756-4ef9-b126-3885ecc0c94d     
+    secrets:
+      envSecret: ${{ secrets.PowerPlatformSPN }}
