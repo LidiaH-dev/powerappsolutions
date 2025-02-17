@@ -1,0 +1,15 @@
+<environmentvariabledefinition schemaname="new_shared_sharepointonline_903a55d75ab3498e8b004fb7033c174a">
+  <apiid>/providers/microsoft.powerapps/apis/shared_sharepointonline</apiid>
+  <displayname default="IDMGeschaeftspartner">
+    <label description="IDMGeschaeftspartner" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.0.0.1</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <parameterkey>table</parameterkey>
+  <parentdefinitionid>
+    <schemaname>new_shared_sharepointonline_42a90b27e6d4498295d8d44a8ca30586</schemaname>
+  </parentdefinitionid>
+  <secretstore>0</secretstore>
+  <type>100000004</type>
+</environmentvariabledefinition>
